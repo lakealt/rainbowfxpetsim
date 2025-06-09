@@ -116,6 +116,8 @@
 
         .controls {
             display: flex;
+            flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+            justify-content: center;
             gap: 15px;
             margin-bottom: 30px;
         }
@@ -141,7 +143,15 @@
             background: linear-gradient(45deg, #27ae60, #2ecc71);
         }
 
-        .rainbow-btn.disabled {
+        .rainbow-btn.disabled, .rainbow-btn:disabled {
+            background: #555;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            opacity: 0.7;
+        }
+
+        .rainbow-btn.recording {
             background: linear-gradient(45deg, #e74c3c, #c0392b);
         }
 
@@ -214,32 +224,6 @@
             margin: 15px 0;
             cursor: pointer;
         }
-
-        .copy-btn {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            border: none;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-top: 15px;
-            transition: transform 0.2s;
-        }
-
-        .copy-btn:hover {
-            transform: translateY(-2px);
-        }
-
-        .header-comment {
-            font-family: 'Courier New', monospace;
-            background: rgba(0, 0, 0, 0.3);
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 14px;
-            color: #888;
-            border-left: 4px solid #667eea;
-        }
     </style>
 </head>
 <body>
@@ -248,7 +232,9 @@
             by: @AngelGamingBTW<br>
         🐱❤️
     </div>
+
     <h1>RainbowFX Gradient</h1>
+    
     <div class="gradient-container" id="gradientContainer">
         <div class="background-image" id="backgroundImage"></div>
         <div class="front-image" id="frontImage"></div>
@@ -261,11 +247,14 @@
         </div>
         <input type="file" id="fileInput" accept="image/*" style="display: none;">
     </div>
+    
     <div class="controls">
         <button class="rainbow-btn" id="toggleBtn" onclick="toggleRainbow()">Start Rainbow FX</button>
-        <button class="rainbow-btn" onclick="copyLuaScript()">Copy Lua Script</button>
+        <button class="rainbow-btn" id="saveBtn" onclick="saveImage()">Save Photo</button>
+        <!-- "Copy Lua Script" button removed from here -->
         <button class="rainbow-btn" onclick="clearImage()">Clear Image</button>
     </div>
+    
     <div class="info-panel">
         <h3>Gradient Properties</h3>
         <div class="property">
@@ -278,61 +267,48 @@
         </div>
         <div class="property">
             <span class="property-label">Transparency:</span>
-            <span>0.25 (Gradient Overlay)</span> <!-- Updated this text to be clearer -->
+            <span>0.25 (Gradient Overlay)</span>
         </div>
         <div class="property">
             <span class="property-label">Animation:</span>
             <span id="animationStatus">Disabled</span>
         </div>
+        
         <div class="speed-control">
             <h4>Animation Speed</h4>
             <input type="range" class="speed-slider" id="speedSlider" min="10" max="200" value="50">
             <p>Speed: <span id="speedValue">0.05</span>s</p>
         </div>
+
         <div class="speed-control">
             <h4>Rotation Angle</h4>
             <input type="range" class="speed-slider" id="rotationSlider" min="-180" max="180" value="-25">
             <p>Angle: <span id="rotationValue">-25</span>°</p>
         </div>
+
         <div class="color-stops">
             <h4>Color Stops (RainbowFX Colors)</h4>
-            <div class="color-stop">
-                <div class="color-preview" style="background: rgb(255, 0, 0);"></div>
-                <span>Red (255, 0, 0)</span>
-            </div>
-            <div class="color-stop">
-                <div class="color-preview" style="background: rgb(255, 127, 0);"></div>
-                <span>Orange (255, 127, 0)</span>
-            </div>
-            <div class="color-stop">
-                <div class="color-preview" style="background: rgb(255, 255, 0);"></div>
-                <span>Yellow (255, 255, 0)</span>
-            </div>
-            <div class="color-stop">
-                <div class="color-preview" style="background: rgb(0, 255, 0);"></div>
-                <span>Green (0, 255, 0)</span>
-            </div>
-            <div class="color-stop">
-                <div class="color-preview" style="background: rgb(0, 255, 255);"></div>
-                <span>Cyan (0, 255, 255)</span>
-            </div>
-            <div class="color-stop">
-                <div class="color-preview" style="background: rgb(0, 0, 255);"></div>
-                <span>Blue (0, 0, 255)</span>
-            </div>
-            <div class="color-stop">
-                <div class="color-preview" style="background: rgb(255, 0, 255);"></div>
-                <span>Magenta (255, 0, 255)</span>
-            </div>
+            <div class="color-stop"><div class="color-preview" style="background: rgb(255, 0, 0);"></div><span>Red (255, 0, 0)</span></div>
+            <div class="color-stop"><div class="color-preview" style="background: rgb(255, 127, 0);"></div><span>Orange (255, 127, 0)</span></div>
+            <div class="color-stop"><div class="color-preview" style="background: rgb(255, 255, 0);"></div><span>Yellow (255, 255, 0)</span></div>
+            <div class="color-stop"><div class="color-preview" style="background: rgb(0, 255, 0);"></div><span>Green (0, 255, 0)</span></div>
+            <div class="color-stop"><div class="color-preview" style="background: rgb(0, 255, 255);"></div><span>Cyan (0, 255, 255)</span></div>
+            <div class="color-stop"><div class="color-preview" style="background: rgb(0, 0, 255);"></div><span>Blue (0, 0, 255)</span></div>
+            <div class="color-stop"><div class="color-preview" style="background: rgb(255, 0, 255);"></div><span>Magenta (255, 0, 255)</span></div>
         </div>
     </div>
+
+    <!-- External Libraries for Saving -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
+    
     <script>
-        // -- THE REST OF THE SCRIPT IS UNCHANGED AND REMAINS THE SAME --
         let rainbowActive = false;
         let animationFrame;
         let speed = 0.05;
         let rotation = -25;
         let uploadedImage = null;
+        
         const colors = [
             {r: 255, g: 0, b: 0},     // Red
             {r: 255, g: 127, b: 0},   // Orange
@@ -342,6 +318,7 @@
             {r: 0, g: 0, b: 255},     // Blue
             {r: 255, g: 0, b: 255}    // Magenta
         ];
+
         const gradientContainer = document.getElementById('gradientContainer');
         const gradientLayer = document.getElementById('gradientLayer');
         const backgroundImage = document.getElementById('backgroundImage');
@@ -349,42 +326,49 @@
         const uploadOverlay = document.getElementById('uploadOverlay');
         const fileInput = document.getElementById('fileInput');
         const toggleBtn = document.getElementById('toggleBtn');
+        const saveBtn = document.getElementById('saveBtn'); 
         const speedSlider = document.getElementById('speedSlider');
         const speedValue = document.getElementById('speedValue');
         const rotationSlider = document.getElementById('rotationSlider');
         const rotationValue = document.getElementById('rotationValue');
         const rotationDisplay = document.getElementById('rotationDisplay');
         const animationStatus = document.getElementById('animationStatus');
-        function lerp(a, b, t) {
-            return a + (b - a) * t;
-        }
-        function createRainbowGradient() {
-            const time = Date.now() * speed * 0.001;
-            const tick = (tick)
+
+        // This function updates the gradient style based on a given time
+        function updateGradient(time) {
+            const tick = (time * speed * 0.001 % 3) / 3;
             let gradientStops = [];
+            
             for (let i = 0; i < colors.length; i++) {
                 let stopTime = tick + i / colors.length;
                 if (stopTime > 1) stopTime -= 1;
+                
                 const color = colors[i];
                 gradientStops.push({
                     time: stopTime,
                     color: `rgb(${color.r}, ${color.g}, ${color.b})`
                 });
             }
+            
             gradientStops.sort((a, b) => a.time - b.time);
+            
             const gradientString = gradientStops.map(stop => 
                 `${stop.color} ${(stop.time * 100).toFixed(1)}%`
             ).join(', ');
-            gradientLayer.style.background = `linear-gradient(${rotation}deg, ${gradien
+            
+            gradientLayer.style.background = `linear-gradient(${rotation}deg, ${gradientString})`;
+        }
+        
+        // This is the LIVE animation loop
+        function animateRainbow() {
+            updateGradient(Date.now());
             if (rainbowActive) {
-                animationFrame = requestAnimationFrame(createRainbowGradient);
+                animationFrame = requestAnimationFrame(animateRainbow);
             }
         }
+        
         uploadOverlay.addEventListener('click', () => fileInput.click());
-        uploadOverlay.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadOverlay.classList.add('dragover');
-        });
+        uploadOverlay.addEventListener('dragover', (e) => { e.preventDefault(); uploadOverlay.classList.add('dragover'); });
         uploadOverlay.addEventListener('dragleave', () => uploadOverlay.classList.remove('dragover'));
         uploadOverlay.addEventListener('drop', (e) => {
             e.preventDefault();
@@ -394,6 +378,7 @@
         fileInput.addEventListener('change', (e) => {
             if (e.target.files.length > 0) handleImageUpload(e.target.files[0]);
         });
+
         function handleImageUpload(file) {
             if (!file.type.startsWith('image/')) {
                 alert('Please upload an image file');
@@ -423,6 +408,7 @@
             };
             reader.readAsDataURL(file);
         }
+
         function clearImage() {
             uploadedImage = null;
             backgroundImage.style.backgroundImage = '';
@@ -430,27 +416,26 @@
             uploadOverlay.classList.remove('hidden');
             fileInput.value = '';
         }
+
         function toggleRainbow() {
-            rainbowActive = !
+            rainbowActive = !rainbowActive;
+            
             if (rainbowActive) {
                 toggleBtn.textContent = 'Stop Rainbow FX';
                 toggleBtn.classList.add('active');
                 animationStatus.textContent = 'Active';
-                createRainbowGradient();
+                animateRainbow();
             } else {
                 toggleBtn.textContent = 'Start Rainbow FX';
                 toggleBtn.classList.remove('active');
-                toggleBtn.classList.add('disabled');
-                animationStatus.textContent = 'Disabled';
-                setTimeout(() => toggleBtn.classList.remove('disabled'), 300);
                 if (animationFrame) cancelAnimationFrame(animationFrame);
+                // Reset to default gradient
                 gradientLayer.style.background = `linear-gradient(${rotation}deg, rgb(255, 0, 0) 0%, rgb(255, 127, 0) 16.66%, rgb(255, 255, 0) 33.33%, rgb(0, 255, 0) 50%, rgb(0, 255, 255) 66.66%, rgb(0, 0, 255) 83.33%, rgb(255, 0, 255) 100%)`;
+                animationStatus.textContent = 'Disabled';
             }
         }
-        speedSlider.addEventListener('input', function() {
-            speed = parseInt(this.value) / 1000;
-            speedValue.textContent = speed.toFixed(3);
-        });
+
+        speedSlider.addEventListener('input', function() { speed = parseInt(this.value) / 1000; speedValue.textContent = speed.toFixed(3); });
         rotationSlider.addEventListener('input', function() {
             rotation = parseInt(this.value);
             rotationValue.textContent = rotation;
@@ -459,59 +444,106 @@
                 gradientLayer.style.background = `linear-gradient(${rotation}deg, rgb(255, 0, 0) 0%, rgb(255, 127, 0) 16.66%, rgb(255, 255, 0) 33.33%, rgb(0, 255, 0) 50%, rgb(0, 255, 255) 66.66%, rgb(0, 0, 255) 83.33%, rgb(255, 0, 255) 100%)`;
             }
         });
-        function copyLuaScript() {
-            const luaScript = `--[[
-    RainbowFX 
-    by: @AngelGamingBTW
---]]
-local colors = {
-	Color3.fromRGB(255, 0, 0),
-	Color3.fromRGB(255, 127, 0),
-	Color3.fromRGB(255, 255, 0),
-	Color3.fromRGB(0, 255, 0),
-	Color3.fromRGB(0, 255, 255),
-	Color3.fromRGB(0, 0, 255),
-	Color3.fromRGB(255, 0, 255)
-} 
-return function(icon: Instance, speed: Number?)
-	speed = speed or 0.05
-	if not icon:FindFirstChild("RainbowGradient") then 
-		local uiGradient = script.RainbowGradient:Clone()
-		uiGradient.Parent = icon
-	end
-	task.spawn(function() 
-		local _tick = tick() % 3 / 3
-		local keypoint = {}
-		local proceed = false
-		for i = 1, #colors + 1 do
-			local Time = _tick + (i - 1) / #colors 
-			Time = 1 < Time and Time - 1 or Time
-			proceed = (Time == 0 or Time == 1) and true or proceed
-			table.insert(keypoint, ColorSequenceKeypoint.new(Time, colors[i] or colors[i - #colors]))
-		end
-		if not proceed then
-			local v86 = (1 - _tick) / (1 / #colors) + 1
-			local color = colors[math.clamp(math.floor(v86), 1, #colors)]:Lerp(colors[math.clamp(math.ceil(v86), 1, #colors)] or colors[1], v86 % 1)
-			table.insert(keypoint, ColorSequenceKeypoint.new(0, color))
-			table.insert(keypoint, ColorSequenceKeypoint.new(1, color))
-		end
-		table.sort(keypoint, function(i, v)
-			return i.Time < v.Time
-		end)
-		icon.RainbowGradient.Color = ColorSequence.new(keypoint)
-	end)
-end`;       
-            navigator.clipboard.writeText(luaScript).then(() => {
-                const btn = event.target;
-                const originalText = btn.textContent;
-                btn.textContent = 'Copied!';
-                btn.style.background = 'linear-gradient(45deg, #27ae60, #2ecc71)';
-                setTimeout(() => {
-                    btn.textContent = originalText;
-                    btn.style.background = 'linear-gradient(45deg, #667eea, #764ba2)';
-                }, 2000);
+
+        function saveImage() {
+            if (!uploadedImage) {
+                alert("Please upload an image first!");
+                return;
+            }
+            if (rainbowActive) {
+                saveAsGIF();
+            } else {
+                saveAsPNG();
+            }
+        }
+
+        function saveAsPNG() {
+            saveBtn.textContent = 'Saving...';
+            saveBtn.disabled = true;
+            html2canvas(gradientContainer, { useCORS: true }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'rainbowfx-static.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            }).catch(err => {
+                console.error("Error saving PNG:", err);
+                alert("Sorry, an error occurred while saving the image.");
+            }).finally(() => {
+                saveBtn.textContent = 'Save Photo';
+                saveBtn.disabled = false;
             });
         }
+
+        // --- NEW AND IMPROVED saveAsGIF FUNCTION ---
+        async function saveAsGIF() {
+            // 1. Setup UI and stop the live animation to prevent conflicts
+            saveBtn.textContent = '🔴 Recording...';
+            saveBtn.classList.add('recording');
+            saveBtn.disabled = true;
+            if (animationFrame) {
+                cancelAnimationFrame(animationFrame);
+            }
+
+            try {
+                // 2. Setup the GIF encoder
+                const gif = new GIF({
+                    workers: 2,
+                    quality: 10,
+                    width: 420,
+                    height: 420,
+                    workerScript: 'https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js'
+                });
+
+                // 3. Define recording parameters
+                const frameRate = 15; // Capture 15 frames per second
+                const duration = 3000; // Record for 3 seconds (one full loop)
+                const totalFrames = frameRate * (duration / 1000);
+                const delay = 1000 / frameRate;
+                const startTime = Date.now();
+
+                // 4. Sequentially capture frames using a loop with "await"
+                for (let i = 0; i < totalFrames; i++) {
+                    const currentTime = startTime + (i * delay);
+                    updateGradient(currentTime);
+
+                    // Wait for html2canvas to finish before proceeding
+                    const canvas = await html2canvas(gradientContainer, { useCORS: true });
+                    gif.addFrame(canvas, { delay: delay });
+                }
+
+                // 5. Render the GIF and wait for it to finish
+                // We "promisify" the 'finished' event
+                const onFinished = new Promise(resolve => {
+                    gif.on('finished', blob => resolve(blob));
+                });
+                
+                gif.render();
+                
+                const blob = await onFinished;
+                
+                // 6. Create download link
+                const link = document.createElement('a');
+                link.download = 'rainbowfx-animated.gif';
+                link.href = URL.createObjectURL(blob);
+                link.click();
+                URL.revokeObjectURL(link.href);
+
+            } catch (error) {
+                console.error("Failed to create GIF:", error);
+                alert("Sorry, an error occurred while recording the GIF. Please try again.");
+            } finally {
+                // 7. ALWAYS clean up the UI and restart the animation
+                saveBtn.textContent = 'Save Photo';
+                saveBtn.classList.remove('recording');
+                saveBtn.disabled = false;
+                if (rainbowActive) {
+                    animateRainbow();
+                }
+            }
+        }
+
+        // --- END OF SAVE FUNCTIONALITY ---
+
         speedValue.textContent = speed.toFixed(3);
         rotationValue.textContent = rotation;
         rotationDisplay.textContent = rotation + '°';
